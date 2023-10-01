@@ -22,6 +22,7 @@ class CourseController extends Controller
             $data = $request->validated();
             $fileStored = Storage::put('/courses/' . $data['slug'] . '/', $request->file('image'));
             $data['image'] = Storage::url($fileStored);
+            $data['user_id'] = $request->user()->id;
             return Course::create($data);
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -29,7 +30,6 @@ class CourseController extends Controller
                 'error' => ['An error has occured, please report this and try again later, please view the error in Log files'],
             ]);
         }
-
     }
 
     public function show(Course $course)

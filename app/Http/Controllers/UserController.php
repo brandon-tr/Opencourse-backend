@@ -111,14 +111,6 @@ class UserController extends Controller
             ]);
         }
 
-        if ($user !== null) {
-            $user->update($data);
-        } else {
-            throw ValidationException::withMessages([
-                'user' => ['User not found'],
-            ]);
-        }
-
         return response()->json(['success' => 'User updated successfully', 'data' => $data], 200);
     }
 
@@ -139,15 +131,14 @@ class UserController extends Controller
         if (Auth::logoutOtherDevices($request->password) && Auth::user()->sessions()->where('id', '!=', Auth::getSession()->getId())->count() > 0) {
             if (Auth::user()->sessions()->where('id', '!=', Auth::getSession()->getId())->delete()) {
                 return response()->json(['success' => 'Logged out of other sessions successfully'], 200);
-            } else {
-                throw ValidationException::withMessages([
-                    'unknown' => ['An unknown error occurred. Please try again.'],
-                ]);
             }
-        } else {
             throw ValidationException::withMessages([
-                'count' => ['There are currently no other active sessions to remove'],
+                'unknown' => ['An unknown error occurred. Please try again.'],
             ]);
         }
+
+        throw ValidationException::withMessages([
+            'count' => ['There are currently no other active sessions to remove'],
+        ]);
     }
 }

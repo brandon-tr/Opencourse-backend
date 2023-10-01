@@ -14,6 +14,9 @@ return new class extends Migration {
             $table->string('image');
             $table->string('slug')->unique();
 
+            // Assign a user to a course
+            $table->foreignId('user_id')->references('id')->on('users');
+
             $table->timestamps();
         });
     }
