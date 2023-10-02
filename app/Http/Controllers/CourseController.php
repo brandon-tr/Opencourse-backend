@@ -22,7 +22,6 @@ class CourseController extends Controller
             $data = $request->validated();
             $fileStored = Storage::put('/courses/' . $data['slug'] . '/', $request->file('image'));
             $data['image'] = Storage::url($fileStored);
-            $data['user_id'] = $request->user()->id;
             return Course::create($data);
         } catch (Exception $e) {
             Log::error($e->getMessage());

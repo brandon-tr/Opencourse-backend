@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserUpdateRequest;
 use Auth;
 use Hash;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Log;
 use Storage;
 
 class UserController extends Controller
 {
-    public function CheckIfLoggedIn()
+    public function CheckIfLoggedIn(): JsonResponse
     {
         if (Auth::check()) {
             return response()->json([
@@ -26,24 +26,20 @@ class UserController extends Controller
         return response()->json(['message' => 'User is not logged in'], 401);
     }
 
-    public function me()
+    public function me(): JsonResponse
     {
         $me = Auth::user();
-
         if (!$me) {
             throw ValidationException::withMessages([
                 'user' => ['User not found'],
             ]);
         }
-
         $sessionInfo = $me->sessions()->select(['id', 'ip_address', 'user_id', 'last_activity', 'user_agent'])->where('user_id', $me->id)->get();
-
         if (!$sessionInfo) {
             throw ValidationException::withMessages([
                 'session' => ['Session not found'],
             ]);
         }
-
         return response()->json([
             'first_name' => $me->first_name,
             'last_name' => $me->last_name,
@@ -53,7 +49,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function update(UserUpdateRequest $request)
+    public function update(UserUpdateRequest $request): JsonResponse
     {
         $user = Auth::user();
         if (!$user) {
@@ -99,8 +95,6 @@ class UserController extends Controller
             $oldFile = str_replace(env("APP_URL") . "/storage/avatars/", "", $user->avatar);
             if (Storage::exists('/avatars/' . $oldFile)) {
                 Storage::delete('/avatars/' . $oldFile);
-            } else {
-                Log::error("Not exists", $oldFile);
             }
             $data['avatar'] = Storage::url($fileStored);
         }
@@ -111,10 +105,16 @@ class UserController extends Controller
             ]);
         }
 
+        if (!$user->update($data)) {
+            throw ValidationException::withMessages([
+                'unknown' => ['An unknown error occurred. Please try again.'],
+            ]);
+        }
+
         return response()->json(['success' => 'User updated successfully', 'data' => $data], 200);
     }
 
-    public function logOutOtherSessions(Request $request)
+    public function logOutOtherSessions(Request $request): JsonResponse
     {
         if (!$request->password) {
             throw ValidationException::withMessages([
@@ -127,7 +127,6 @@ class UserController extends Controller
                 'password' => ['The provided password does not match your current password.'],
             ]);
         }
-
         if (Auth::logoutOtherDevices($request->password) && Auth::user()->sessions()->where('id', '!=', Auth::getSession()->getId())->count() > 0) {
             if (Auth::user()->sessions()->where('id', '!=', Auth::getSession()->getId())->delete()) {
                 return response()->json(['success' => 'Logged out of other sessions successfully'], 200);
@@ -136,9 +135,20 @@ class UserController extends Controller
                 'unknown' => ['An unknown error occurred. Please try again.'],
             ]);
         }
-
         throw ValidationException::withMessages([
             'count' => ['There are currently no other active sessions to remove'],
         ]);
+    }
+
+    public function deleteAccount(): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'user' => ['User not found'],
+            ]);
+        }
+        $user->delete();
+        return response()->json(['success' => 'User deleted successfully'], 200);
     }
 }

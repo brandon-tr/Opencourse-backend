@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SiteSetting\SiteSettingRequest;
 use App\Models\SiteSetting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Lang;
 use Storage;
@@ -29,7 +30,7 @@ class SiteSettingController extends Controller
         return SiteSetting::first()->get(['site_name', 'site_description', 'site_author', 'site_keywords']);
     }
 
-    public function returnSiteLogo()
+    public function returnSiteLogo(): JsonResponse
     {
         $logo = SiteSetting::select('site_logo')->first();
         return response()->json([

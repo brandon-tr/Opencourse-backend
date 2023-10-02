@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\User;
+use Auth;
+use Illuminate\Http\JsonResponse;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
         $userCount = User::count();
         $totalCourses = Course::count();
@@ -20,26 +22,38 @@ class DashboardController extends Controller
                 'label' => 'Last 30 Days',
             ],
             'users' => [
-
                 'stat' => $userCount,
                 'change' => $change,
                 'changeType' => $change > 0 ? 'increase' : $change = 0 ? 'no-change' : 'decrease',
-
             ],
             'totalCourses' => [
-
                 'stat' => $totalCourses,
                 'change' => $tcChange,
                 'changeType' => $tcChange > 0 ? 'increase' : $tcChange = 0 ? 'no-change' : 'decrease',
-
             ]
         ], 200);
     }
 
-    public function getUserList()
+    public function getUserList(): JsonResponse
     {
         $users = User::select(['avatar', 'id', 'first_name', "last_name", 'email', 'level'])->get();
         return response()->json([
+            'users' => $users,
+        ], 200);
+    }
+
+    public function getUserSelectOptions(): JsonResponse
+    {
+        $users = User::select(['id', 'first_name', "last_name", 'avatar'])->get();
+
+        // Combine first_name and last_name
+        foreach ($users as $user) {
+            $user->name = $user->first_name . ' ' . $user->last_name;
+            unset($user->first_name, $user->last_name);
+        }
+
+        return response()->json([
+            'default' => Auth::user()->id,
             'users' => $users,
         ], 200);
     }

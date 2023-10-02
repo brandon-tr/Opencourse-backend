@@ -47,8 +47,6 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected $with = ['sessions'];
-
     public function sessions(): HasMany
     {
         return $this->hasMany(Session::class);
