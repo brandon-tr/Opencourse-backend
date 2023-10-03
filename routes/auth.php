@@ -43,5 +43,5 @@ Route::prefix("user")->middleware(['auth'])->group(function () {
     Route::get("/me", [UserController::class, 'me']);
     Route::post("/log_out_other_sessions", [UserController::class, 'logOutOtherSessions']);
     Route::get('get_courses', [CourseController::class, 'index']);
-    Route::get('/delete_account', [UserController::class, 'deleteAccount']);
+    Route::post('/delete_account/me', [UserController::class, 'deleteAccount']);
 });

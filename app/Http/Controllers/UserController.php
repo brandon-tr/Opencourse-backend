@@ -148,6 +148,20 @@ class UserController extends Controller
                 'user' => ['User not found'],
             ]);
         }
+        if ($user->avatar) {
+            $oldFile = str_replace(env("APP_URL") . "/storage/avatars/", "", $user->avatar);
+            if (Storage::exists('/avatars/' . $oldFile)) {
+                Storage::delete('/avatars/' . $oldFile);
+            }
+        }
+        $courses = $user->courses()->get();
+        $courses->each(function ($course) {
+            $file = str_replace(env("APP_URL") . "/storage/courses/", "", $course->image);
+            if (Storage::exists('/courses/' . $file)) {
+                Storage::delete('/courses/' . $file);
+            }
+            $course->delete();
+        });
         $user->delete();
         return response()->json(['success' => 'User deleted successfully'], 200);
     }

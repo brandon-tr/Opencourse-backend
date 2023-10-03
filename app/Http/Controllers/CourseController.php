@@ -13,7 +13,7 @@ class CourseController extends Controller
 {
     public function index()
     {
-        return Course::all();
+        return Course::select(['id', 'title', 'slug', 'image', 'description'])->get();
     }
 
     public function store(CourseRequest $request)
